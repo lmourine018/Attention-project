@@ -47,25 +47,24 @@ def get_mask_token_index(mask_token_id, inputs):
     Return the index of the token with the specified `mask_token_id`, or
     `None` if not present in the `inputs`.
     """
-    input_ids = inputs['input_ids'][0].numpy().tolist()
-
-    # Find the index of the mask token ID
+    input_ids = inputs['input_ids'].numpy()[0]  # Convert EagerTensor to numpy array
     if mask_token_id in input_ids:
-        return input_ids.index(mask_token_id)
+        return list(input_ids).index(mask_token_id)
     else:
         return None
 
 
 def get_color_for_attention_score(score: float) -> tuple:
-    # Ensure the score is within the valid range
-    if not (0 <= score <= 1):
-        raise ValueError("Attention score must be between 0 and 1.")
 
-    # Calculate the gray value
-    gray_value = int(score * 255)
+        # Ensure the score is within the valid range
+        if not (0 <= score <= 1):
+            raise ValueError("Attention score must be between 0 and 1.")
 
-    # Return the RGB color tuple
-    return (gray_value, gray_value, gray_value)
+        # Calculate the gray value
+        gray_value = int(score * 255)
+
+        # Return the RGB color tuple
+        return (gray_value, gray_value, gray_value)
 
 
 def visualize_attentions(tokens, attentions):
