@@ -2,7 +2,6 @@ import sys
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-
 from PIL import Image, ImageDraw, ImageFont
 from transformers import AutoTokenizer, TFBertForMaskedLM
 
@@ -39,7 +38,7 @@ def main():
         print(text.replace(tokenizer.mask_token, tokenizer.decode([token])))
 
     # Visualize attentions
-    visualize_attentions(tokenizer.convert_ids_to_tokens(inputs['input_ids'][0]), result.attentions)
+    visualize_attentions(inputs.tokens(), result.attentions)
 
 
 def get_mask_token_index(mask_token_id, inputs):
@@ -47,24 +46,26 @@ def get_mask_token_index(mask_token_id, inputs):
     Return the index of the token with the specified `mask_token_id`, or
     `None` if not present in the `inputs`.
     """
-    input_ids = inputs['input_ids'].numpy()[0]  # Convert EagerTensor to numpy array
-    if mask_token_id in input_ids:
-        return list(input_ids).index(mask_token_id)
+    input_ids = inputs['input_ids'].numpy()[0]
+    input_ids_list = input_ids.tolist()
+    # Find the index of the mask token ID
+    if mask_token_id in input_ids_list:
+        return input_ids_list.index(mask_token_id)
     else:
         return None
 
 
 def get_color_for_attention_score(score: float) -> tuple:
+    # Ensure the score is within the valid range
+    if not (0 <= score <= 1):
+        raise ValueError("Attention score must be between 0 and 1.")
 
-        # Ensure the score is within the valid range
-        if not (0 <= score <= 1):
-            raise ValueError("Attention score must be between 0 and 1.")
+    # Calculate the gray value
+    gray_value = int(score * 255)
 
-        # Calculate the gray value
-        gray_value = int(score * 255)
+    # Return the RGB color tuple
+    return (gray_value, gray_value, gray_value)
 
-        # Return the RGB color tuple
-        return (gray_value, gray_value, gray_value)
 
 
 def visualize_attentions(tokens, attentions):
@@ -77,32 +78,31 @@ def visualize_attentions(tokens, attentions):
     include both the layer number (starting count from 1) and head number
     (starting count from 1).
     """
+    # TODO: Update this function to produce diagrams for all layers and heads.
+
+    generate_diagram(
+        1,
+        1,
+        tokens,
+        attentions[0][0][0]
+    )
     num_layers = len(attentions)
     num_heads = len(attentions[0][0][0])  # Number of attention heads in each layer
 
     for layer in range(num_layers):
         for head in range(num_heads):
-            # Get the attention scores for this layer and head
             attention_scores = attentions[layer][0][head].numpy()
-
-            # Generate the diagram
             fig, ax = plt.subplots()
             cax = ax.matshow(attention_scores, cmap='Greys', vmin=0, vmax=1)
             fig.colorbar(cax)
 
-            # Set axis labels
             ax.set_xticks(np.arange(len(tokens)))
             ax.set_yticks(np.arange(len(tokens)))
             ax.set_xticklabels(tokens)
             ax.set_yticklabels(tokens)
 
-            # Rotate tick labels
             plt.xticks(rotation=90)
-
-            # Add title
             ax.set_title(f'Layer {layer + 1}, Head {head + 1}')
-
-            # Save the diagram
             plt.savefig(f'attention_layer_{layer + 1}_head_{head + 1}.png')
             plt.close()
 
