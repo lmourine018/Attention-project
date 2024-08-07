@@ -67,7 +67,6 @@ def get_color_for_attention_score(score: float) -> tuple:
     return (gray_value, gray_value, gray_value)
 
 
-
 def visualize_attentions(tokens, attentions):
     """
     Produce a graphical representation of self-attention scores.
@@ -78,33 +77,13 @@ def visualize_attentions(tokens, attentions):
     include both the layer number (starting count from 1) and head number
     (starting count from 1).
     """
-    # TODO: Update this function to produce diagrams for all layers and heads.
-
-    # generate_diagram(
-    #     1,
-    #     1,
-    #     tokens,
-    #     attentions[0][0][0]
-    # )
     num_layers = len(attentions)
-    num_heads = len(attentions[0][0][0])  # Number of attention heads in each layer
+    num_heads = attentions[0].shape[1]  # Number of attention heads in each layer
 
     for layer in range(num_layers):
         for head in range(num_heads):
             attention_scores = attentions[layer][0][head].numpy()
-            fig, ax = plt.subplots()
-            cax = ax.matshow(attention_scores, cmap='Greys', vmin=0, vmax=1)
-            fig.colorbar(cax)
-
-            ax.set_xticks(np.arange(len(tokens)))
-            ax.set_yticks(np.arange(len(tokens)))
-            ax.set_xticklabels(tokens)
-            ax.set_yticklabels(tokens)
-
-            plt.xticks(rotation=90)
-            ax.set_title(f'Layer {layer + 1}, Head {head + 1}')
-            plt.savefig(f'attention_layer_{layer + 1}_head_{head + 1}.png')
-            plt.close()
+            generate_diagram(layer + 1, head + 1, tokens, attention_scores)
 
 
 def generate_diagram(layer_number, head_number, tokens, attention_weights):
