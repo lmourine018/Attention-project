@@ -35,10 +35,10 @@ def main():
     mask_token_logits = result.logits[0, mask_token_index]
     top_tokens = tf.math.top_k(mask_token_logits, K).indices.numpy()
     for token in top_tokens:
-        print(text.replace(tokenizer.mask_token, tokenizer.decode([token])))
+        print(text.replace(tokenizer.mask_token, tokenizer.decode([token]).strip()))
 
     # Visualize attentions
-    visualize_attentions(inputs.tokens(), result.attentions)
+    visualize_attentions(tokenizer.convert_ids_to_tokens(inputs['input_ids'][0]), result.attentions)
 
 
 def get_mask_token_index(mask_token_id, inputs):
@@ -80,12 +80,12 @@ def visualize_attentions(tokens, attentions):
     """
     # TODO: Update this function to produce diagrams for all layers and heads.
 
-    generate_diagram(
-        1,
-        1,
-        tokens,
-        attentions[0][0][0]
-    )
+    # generate_diagram(
+    #     1,
+    #     1,
+    #     tokens,
+    #     attentions[0][0][0]
+    # )
     num_layers = len(attentions)
     num_heads = len(attentions[0][0][0])  # Number of attention heads in each layer
 
